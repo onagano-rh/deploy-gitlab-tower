@@ -1,0 +1,19 @@
+[tower]
+localhost ansible_connection=local
+
+[database]
+
+[all:vars]
+admin_password='{{ admin_password }}'
+
+pg_host=''
+pg_port=''
+
+pg_database='awx'
+pg_username='awx'
+pg_password='{{ pg_password }}'
+pg_sslmode='prefer'  # set to 'verify-full' for client-side enforced SSL
+
+rabbitmq_username=tower
+rabbitmq_password='{{ rabbitmq_password }}'
+rabbitmq_cookie=cookiemonster

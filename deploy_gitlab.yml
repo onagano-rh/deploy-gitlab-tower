@@ -1,0 +1,26 @@
+---
+- name: Deploy GitLab
+  hosts: gitlab
+  become: true
+  roles:
+    - role: common
+      tags:
+        - common
+  tasks:
+    - block:
+        - include_role:
+            # To get the role: `ansible-galaxy role install -r roles/requirements.yml -p roles`
+            name: gitlab
+          vars:
+            gitlab_external_url: "https://{{ ansible_host }}/"
+        - name: Open ports for GitLab
+          firewalld:
+            service: "{{ item }}"
+            permanent: yes
+            immediate: yes
+            state: enabled
+          loop:
+            - http
+            - https
+      tags:
+        - gitlab

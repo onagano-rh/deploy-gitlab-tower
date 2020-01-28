@@ -1,0 +1,24 @@
+---
+- name: Disable preconfigured repositories in the base image
+  yum_repository:
+    name: "{{ item.name }}"
+    file: "{{ item.file }}"
+    state: absent
+  loop: "{{ preconfigured_repositories_to_disable }}"
+
+- name: Ensure valid subscription
+  redhat_subscription:
+    state: present
+    username: "{{ subscription_username }}"
+    password: "{{ subscription_password }}"
+    pool_ids:
+      - "{{ subscription_pool_id }}"
+  tags:
+    - subscription
+
+- name: Enable repositories
+  rhsm_repository:
+    name: "{{ repositories_to_enable }}"
+    purge: True
+  tags:
+    - subscription

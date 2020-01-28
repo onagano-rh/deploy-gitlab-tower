@@ -1,0 +1,14 @@
+# Doc: https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html
+# You can copy this to ./hosts or ~/.ansible/hosts.
+
+[gitlab]
+# Should be CentOS 7 because geerlingguy.gitlab role is used.
+gitlab.example.com
+
+[tower]
+# Should be RHEL 8.
+tower.example.com
+
+[all:vars]
+# Any user who can execute sudo without any passwords.
+ansible_user=root

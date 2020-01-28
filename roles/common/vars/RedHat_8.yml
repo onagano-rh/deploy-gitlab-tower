@@ -1,0 +1,31 @@
+---
+# Internal repositories in the base image, doens't work in the public network.
+# You can delete, or just leave and ignore, this.
+preconfigured_repositories_to_disable:
+  - name: rhel8
+    file: download.devel.redhat.com
+  - name: rhel8-soruce
+    file: download.devel.redhat.com
+
+# Subscription setting variables
+subscription_username: rhn-support-onagano
+subscription_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          32643564663335643933323163366264623766326333326435393335333637333164656633353434
+          3961613663323939326634663837613538363836616633380a336431353763343938376261326431
+          38613136616438313039323163383461623863613638663261626634343635386434663338333035
+          3534333031633364620a663934643761333736313363623039373363656464633939623232343965
+          31653336393837623036666231313961303863663030636430663966666366646463
+# How to check pool ID:
+#   subscription-manager list --available
+subscription_pool_id: 8a85f99c6c8b9588016c8be0f38a0ee9
+
+# How to check repository ID:
+#   subscription-manager repos --list
+repositories_to_enable:
+  - rhel-8-for-x86_64-baseos-rpms
+  - rhel-8-for-x86_64-appstream-rpms
+  - ansible-2-for-rhel-8-x86_64-rpms
+
+specific_packages:
+  - "@python36"

@@ -1,0 +1,11 @@
+---
+- name: Deploy Ansible Tower
+  hosts: tower
+  become: true
+  roles:
+    - role: common
+      tags:
+        - common
+    - role: tower
+      tags:
+        - tower

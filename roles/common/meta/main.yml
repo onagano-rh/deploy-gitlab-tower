@@ -1,0 +1,29 @@
+# Doc: https://galaxy.ansible.com/docs/contributing/creating_role.html
+
+---
+galaxy_info:
+  author: Osamu Nagano
+  description: Sets up repositories and basic packages for Red Hat flavored Linux.
+  company: Red Hat
+
+  license: Public Domain
+
+  min_ansible_version: 2.8
+
+  # https://galaxy.ansible.com/api/v1/platforms/?name__icontains=fedora
+  platforms:
+  - name: Fedora
+    versions:
+    - 30
+    - 31
+  - name: EL
+    versions:
+    - 7
+    - 8
+
+  # https://galaxy.ansible.com/api/v1/tags/?name__icontains=database
+  galaxy_tags:
+    - development
+    - ci
+
+dependencies: []

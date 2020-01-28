@@ -1,0 +1,21 @@
+---
+# Distributions:
+#   RHEL: RedHat
+#   CentOS: CentOS
+#   Fedora: Fedora
+
+- name: Include distribution specific variables from vars directory
+  include_vars: "{{ ansible_distribution }}_{{ ansible_distribution_major_version }}.yml"
+
+- name: Include distribution specific tasks
+  include_tasks: repo_{{ ansible_distribution }}.yml
+
+- name: Install specific packages
+  yum:
+    name: "{{ specific_packages }}"
+    state: present
+
+- name: Install common packages
+  yum:
+    name: "{{ common_packages }}"
+    state: present

@@ -1,0 +1,52 @@
+# Doc EN: https://docs.ansible.com/ansible-tower/latest/html/installandreference/tower_installer.html
+# Doc JA: https://docs.ansible.com/ansible-tower/3.5.2/html_ja/installandreference/tower_installer.html
+
+---
+- name: Create the root directory for Tower
+  file:
+    path: "{{ tower_home }}"
+    state: directory
+
+- name: Download Tower installer
+  get_url:
+    url: "{{ tower_installer_url }}"
+    dest: /opt
+    checksum: "{{ tower_installer_url_sha1sum }}"
+  register: tower_archive
+
+- debug:
+    var: tower_archive
+
+- name: Unarchive Tower installer
+  unarchive:
+    src: "{{ tower_archive.dest }}"
+    dest: "{{ tower_home }}"
+    remote_src: yes
+    # Tips: https://unix.stackexchange.com/questions/346346/ansible-extract-without-first-directory
+    # To use a fixed directory name without depending on the contents of the archive.
+    extra_opts:
+      - "--strip-components=1"
+  when: tower_archive is changed
+
+- name: Copy inventory file
+  template:
+    src: inventory.j2
+    dest: "{{ tower_home }}/inventory"
+
+- name: Run the installer
+  command:
+    cmd: ./setup.sh
+    chdir: "{{ tower_home }}"
+  tags:
+    - tower_setup
+
+- name: Import a license
+  uri:
+    url: "https://{{ ansible_host }}/api/v2/config/"
+    user: admin
+    password: "{{ admin_password }}"
+    method: POST
+    body_format: json
+    body: "{{ tower_license }}"
+    validate_certs: no
+    force_basic_auth: yes
