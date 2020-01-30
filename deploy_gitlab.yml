@@ -8,7 +8,7 @@
         - common
   tasks:
     - block:
-        - include_role:
+        - import_role:
             # To get the role: `ansible-galaxy role install -r roles/requirements.yml -p roles`
             name: gitlab
           vars:
