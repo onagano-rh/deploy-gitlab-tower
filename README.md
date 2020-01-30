@@ -87,14 +87,17 @@ cat /tmp/my-value.txt | tr -d '\n' | \
 最後の`subscription_passowrd`は変数名で、適宜変更して下さい。
 
 実際に変更が必要なファイルと変数のリストは以下の通りです。
+"*"を付けたものは暗号化が必要です。
 
 - roles/common/vars/RedHat_8.yml
-  - subscription_password
+  - subscription_username
+  - subscription_password *
+  - subscription_pool_id
 - roles/tower/defaults/main.yml
-  - admin_password
-  - pg_password
-  - rabbitmq_password
-  - tower_license
+  - admin_password *
+  - pg_password *
+  - rabbitmq_password *
+  - tower_license *
 
 最後の`tower_lisense`にはTowerのライセンスのJSONオブジェクトを格納します。
 このとき、下記のように`"eula_accepted": true`が含まれていないと
@@ -158,3 +161,18 @@ GitLabの管理者のパスワードはファイルで指定するのではな�
 
 なお、Towerの管理ユーザは`admin`、
 パスワードは前述の`admin_password`変数でしていしたものです。
+
+
+Towerでの自己署名証明書の許可
+-----------------
+
+GitLabが自己署名証明書を用いているため、そのままではTowerがそこから
+リポジトリをクローンするときにエラーになってしまいます。
+これを回避するために、"SETTINGS / JOBS / EXTRA ENVIRONMENT VARIABLES"
+に以下の設定を行います。
+
+```
+{
+ "GIT_SSL_NO_VERIFY": "True"
+}
+```
