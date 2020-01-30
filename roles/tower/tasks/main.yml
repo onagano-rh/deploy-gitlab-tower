@@ -34,7 +34,7 @@
     dest: "{{ tower_home }}/inventory"
 
 - name: Run the installer
-  command:
+  command: # noqa 301
     cmd: ./setup.sh
     chdir: "{{ tower_home }}"
   tags:
