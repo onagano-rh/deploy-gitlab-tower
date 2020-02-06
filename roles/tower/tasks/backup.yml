@@ -11,8 +11,9 @@
     # A symbolic link with this name is created
     backup_file: "{{ tower_home }}/tower-backup-latest.tar.gz"
 
-- name: Bring tha backup file to the local current directory
+- name: Bring tha backup file if "local_dest" var is defined
   fetch:
     src: "{{ backup_file }}"
-    dest: ./{{ inventory_hostname }}_{{ backup_file | basename }}
+    dest: "{{ local_dest }}/{{ inventory_hostname }}_{{ backup_file | basename }}"
     flat: true
+  when: local_dest is defined
