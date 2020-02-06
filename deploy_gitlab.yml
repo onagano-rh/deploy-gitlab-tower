@@ -12,7 +12,8 @@
             # To get the role: `ansible-galaxy role install -r roles/requirements.yml -p roles`
             name: gitlab
           vars:
-            gitlab_external_url: "https://{{ ansible_host }}/"
+            gitlab_external_url: "https://{{ inventory_hostname }}/"
+            gitlab_self_signed_cert_subj: "/C=JP/ST=Tokyo/L=Shibuya/O=Consulting/CN={{ inventory_hostname }}"
         - name: Open ports for GitLab
           firewalld:
             service: "{{ item }}"

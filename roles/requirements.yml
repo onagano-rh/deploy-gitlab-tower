@@ -3,3 +3,7 @@
 - name: gitlab
   src: geerlingguy.gitlab
   version: 2.5.2
+# https://galaxy.ansible.com/riemers/gitlab-runner
+- name: gitlab-runner
+  src: riemers.gitlab-runner
+  version: v1.5.7

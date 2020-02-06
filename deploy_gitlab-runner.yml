@@ -1,0 +1,72 @@
+# Run this playbook after installing GitLab itself.
+
+---
+- name: Deploy GitLab Runner
+  hosts: gitlab-runner
+  become: true
+  roles:
+    - role: common
+      tags:
+        - common
+  tasks:
+    - block:
+        - name: Ensure minimum necessary variables for the role
+          assert:
+            that:
+              # Take from https://gitlab.example.com/admin/runners
+              - gitlab_runner_coordinator_url | d()
+              - gitlab_runner_registration_token | d()
+        - name: Ensure certs directory exists
+          file:
+            path: /etc/gitlab-runner/certs
+            state: directory
+#        - name: Copy self-signed certificate from gitlab in prior
+#          # https://docs.gitlab.com/runner/configuration/tls-self-signed.html
+#          become: false $ To use normal user's SSH settings
+#          local_action: >- # You can use "synchronize" module also
+#            command scp
+#            -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+#            {{ user_a }}@{{ host_a }}:/etc/gitlab/ssl/gitlab.crt
+#            {{ user_b }}@{{ host_b }}:/etc/gitlab-runner/certs/{{ host_a }}.crt
+#          vars:
+#            gitlab: "{{ groups['gitlab'][0] }}"
+#            # fist server of gitlab group
+#            user_a: "{{ hostvars[gitlab]['ansible_user'] }}"
+#            host_a: "{{ hostvars[gitlab]['inventory_hostname'] }}"
+#            # this server
+#            user_b: "{{ ansible_user }}"
+#            host_b: "{{ inventory_hostname }}"
+        - import_role:
+            # To get the role: `ansible-galaxy role install -r roles/requirements.yml -p roles`
+            name: gitlab-runner
+          vars:
+            # Copied from https://github.com/riemers/ansible-gitlab-runner
+            gitlab_runner_runners:
+              - name: 'Example Docker GitLab Runner'
+                executor: docker
+                docker_image: 'alpine'
+                tags:
+                  - node
+                  - ruby
+                  - mysql
+                docker_volumes:
+                  - "/var/run/docker.sock:/var/run/docker.sock"
+                  - "/cache"
+                extra_configs:
+                  runners.docker:
+                    memory: 512m
+                    allowed_images: ["ruby:*", "python:*", "php:*"]
+                  runners.docker.sysctls:
+                    net.ipv4.ip_forward: "1"
+
+#        - name: Open ports for GitLab Runner
+#          firewalld:
+#            service: "{{ item }}"
+#            permanent: yes
+#            immediate: yes
+#            state: enabled
+#          loop:
+#            - http
+#            - https
+      tags:
+        - gitlab-runner

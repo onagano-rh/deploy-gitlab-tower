@@ -5,8 +5,11 @@
     - [インベントリの設定](#インベントリの設定)
     - [ansible.cfgの設定](#ansiblecfgの設定)
     - [Ansible Vaultのパスワードファイルの作成と暗号化文字列の更新](#ansible-vaultのパスワードファイルの作成と暗号化文字列の更新)
+    - [GitLabとGitLab Runner間の自己署名証明書の問題の回避策](#gitlabとgitlab-runner間の自己署名証明書の問題の回避策)
     - [実行](#実行)
     - [GitLabの初回アクセス時のrootパスワードの変更](#gitlabの初回アクセス時のrootパスワードの変更)
+    - [Towerでの自己署名証明書の許可](#towerでの自己署名証明書の許可)
+    - [GitLab Runnerのインストール](#gitlab-runnerのインストール)
 
 <!-- markdown-toc end -->
 
@@ -113,6 +116,25 @@ cat /tmp/my-value.txt | tr -d '\n' | \
 }
 ```
 
+GitLabとGitLab Runner間の自己署名証明書の問題の回避策
+----------------
+
+後でGitLab Runnerをインストールするときに、
+GitLab Runnerが自分をGitLabの証明書を正しく検証できないとエラーになります。
+これを回避するために、GitLabの自己署名証明書をGitLab Runner側にコピーする
+作業を（後で）行います。
+それに備えて、GitLabの証明書のサブジェクトが正しいものになるように
+deploy_gitlab.ymlで下記の変数を定義しています。
+
+    gitlab_external_url: "https://{{ inventory_hostname }}/"
+    gitlab_self_signed_cert_subj: "/C=JP/ST=Tokyo/L=Shibuya/O=Consulting/CN={{ inventory_hostname }}"
+
+これらの変数を未定義のままGitLabをインストールした場合は、
+再インストールするか、下記のタスクで行っているように`openssl`コマンドで再作成し配置し直します。
+
+https://github.com/geerlingguy/ansible-role-gitlab/blob/2.5.2/tasks/main.yml#L62
+
+
 実行
 ----------------
 
@@ -175,4 +197,45 @@ GitLabが自己署名証明書を用いているため、そのままではTower
 {
  "GIT_SSL_NO_VERIFY": "True"
 }
+```
+
+GitLab Runnerのインストール
+------------------
+
+GitLabでCI/CDを行うには、GitLab本体とは別にGitLab Runnerをインストールします。
+GitLab Runnerではビルド中に危険な操作（`rm -rf /`など）も行い得るため、
+GitLab本体とは別のサーバにインストールすることが強く推奨されています。
+
+ここではGalaxy Hubにあるriemers.ansible-gitlab-runnerを使います。
+GitLabの画面上でRegistration Tokenを取得する必要があるため、
+一旦GitLabのインストールを終えて、その後GitLab Runnerをインストールします。
+
+GitLabにrootでログインし、下記のURLにアクセスしてURLとRegistration Tokenをメモします。
+
+https://gitlab.example.com/admin/runners
+
+
+また、GitLabの自己署名証明書をGitLab Runnerにあらかじめコピーしておきます。
+
+```
+scp root@gitlab.example.com:/etc/gitlab/ssl/gitlab.crt \
+    root@gitlab-runner.example.com:/etc/gitlab-runner/certs/gitlab.example.com.crt
+```
+
+（これに相当する処理もdeploy_gitlab-runner.ymlに書いてあるが、
+うまく動かなかったので現在はコメントアウトしている。）
+
+さらに、このPlaybookではREADME.mdの例と同様のDocker Excecutorの設定をそのまま行っていますが、
+エラーが発生するためIssue #59で報告されている回避策を適用します。
+
+https://github.com/riemers/ansible-gitlab-runner
+
+https://github.com/riemers/ansible-gitlab-runner/issues/59#issuecomment-531559554
+
+その後以下のようにURLとRegistration Tokenを指定してdeploy_gitlab-runner.ymlを実行します。
+
+```
+ansible-playbook deploy_gitlab-runner.yml \
+  -e 'gitlab_runner_coordinator_url=<GitLabのURL>'
+  -e 'gitlab_runner_registration_token=<Registration_Token>'
 ```
