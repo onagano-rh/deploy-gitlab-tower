@@ -1,0 +1,18 @@
+# Doc EN: https://docs.ansible.com/ansible-tower/latest/html/administration/backup_restore.html
+# Doc JA: https://docs.ansible.com/ansible-tower/3.5.2/html_ja/administration/backup_restore.html
+
+---
+- name: Backup by setup.sh
+  command: # noqa 301
+    cmd: ./setup.sh -b
+    chdir: "{{ tower_home }}"
+
+- set_fact:
+    # A symbolic link with this name is created
+    backup_file: "{{ tower_home }}/tower-backup-latest.tar.gz"
+
+- name: Bring tha backup file to the local current directory
+  fetch:
+    src: "{{ backup_file }}"
+    dest: ./{{ inventory_hostname }}_{{ backup_file | basename }}
+    flat: true

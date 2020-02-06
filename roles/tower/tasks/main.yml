@@ -50,3 +50,21 @@
     body: "{{ tower_license }}"
     validate_certs: no
     force_basic_auth: yes
+
+- name: Restore data if "tower_backup_file" var is defined
+  import_tasks: restore.yml
+  when: tower_backup_file is defined
+
+
+# Execute only this by the tag: ansible-playbook ... -t tower_restore
+- import_tasks: restore.yml
+  tags:
+    - never
+    - tower_restore
+
+
+# Execute only this by the tag: ansible-playbook ... -t tower_backup
+- import_tasks: backup.yml
+  tags:
+    - never
+    - tower_backup

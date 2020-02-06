@@ -1,0 +1,21 @@
+# Doc EN: https://docs.ansible.com/ansible-tower/latest/html/administration/backup_restore.html
+# Doc JA: https://docs.ansible.com/ansible-tower/3.5.2/html_ja/administration/backup_restore.html
+
+---
+- name: Check if the var is valid, "-e tower_backup_file=..."
+  assert:
+    that:
+      - tower_backup_file | d()
+      - tower_backup_file is file
+
+- name: Copy the backup file
+  copy:
+    src: "{{ tower_backup_file }}"
+    dest: /opt
+
+- name: Restore by setup.sh
+  command: # noqa 301
+    cmd: >-
+      ./setup.sh -r
+      -e 'restore_backup_file=/opt/{{ tower_backup_file | basename }}'
+    chdir: "{{ tower_home }}"
