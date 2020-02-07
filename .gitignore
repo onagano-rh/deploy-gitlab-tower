@@ -1,4 +1,2 @@
 hosts
-roles/gitlab/
-roles/gitlab-runner/
 *.tar.gz

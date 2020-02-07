@@ -140,8 +140,7 @@ https://github.com/geerlingguy/ansible-role-gitlab/blob/2.5.2/tasks/main.yml#L62
 
 GitLabにはAnsible Galaxyにある
 [geerlingguy](https://galaxy.ansible.com/geerlingguy/gitlab)
-を再利用しており、まず以下のコマンドでロールをダウンロードします。
-(Towerでの実行時には自動でダウンロードされる。)
+を再利用しており、下記のコマンドであらかじめ取得したものをリポジトリにも収めています。
 
 ```
 ansible-galaxy role install -r roles/requirements.yml -p roles
