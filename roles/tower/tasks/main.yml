@@ -11,7 +11,6 @@
   get_url:
     url: "{{ tower_installer_url }}"
     dest: /opt
-    checksum: "{{ tower_installer_url_sha1sum }}"
   register: tower_archive
 
 - debug:
