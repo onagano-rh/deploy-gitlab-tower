@@ -23,6 +23,10 @@
             state: started
           tags:
             - docker
+        - name: Get a Red Hat certificate to get UBI
+          get_url:
+            url: https://github.com/candlepin/subscription-manager/raw/master/etc-conf/redhat-uep.pem
+            dest: /etc/rhsm/ca/redhat-uep.pem
         - name: Ensure minimum necessary variables for the role
           assert:
             that:
@@ -57,6 +61,6 @@
             gitlab_runner_runners:
               - name: 'Docker GitLab Runner'
                 executor: docker
-                docker_image: 'centos:8'
+                docker_image: 'registry.access.redhat.com/ubi8/ubi'
       tags:
         - gitlab-runner

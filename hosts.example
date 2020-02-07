@@ -6,7 +6,7 @@
 gitlab.example.com
 
 [gitlab-runner]
-# Should be CentOS 7 because roles/gitlab-runner role is used.
+# Should be CentOS 7 because riemers.gitlab-runner role is used.
 gitlab-runner.example.com
 
 [tower]
