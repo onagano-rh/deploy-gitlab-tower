@@ -5,6 +5,10 @@
 # Should be CentOS 7 because geerlingguy.gitlab role is used.
 gitlab.example.com
 
+[gitlab-runner]
+# Should be CentOS 7 because roles/gitlab-runner role is used.
+gitlab-runner.example.com
+
 [tower]
 # Should be RHEL 8.
 tower.example.com

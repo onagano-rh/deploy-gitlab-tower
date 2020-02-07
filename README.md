@@ -122,7 +122,7 @@ GitLabとGitLab Runner間の自己署名証明書の問題の回避策
 後でGitLab Runnerをインストールするときに、
 GitLab Runnerが自分をGitLabの証明書を正しく検証できないとエラーになります。
 これを回避するために、GitLabの自己署名証明書をGitLab Runner側にコピーする
-作業を（後で）行います。
+作業が、GitLab Runnerのインストール時に行われます。
 それに備えて、GitLabの証明書のサブジェクトが正しいものになるように
 deploy_gitlab.ymlで下記の変数を定義しています。
 
@@ -207,30 +207,15 @@ GitLab Runnerではビルド中に危険な操作（`rm -rf /`など）も行い
 GitLab本体とは別のサーバにインストールすることが強く推奨されています。
 
 ここではGalaxy Hubにあるriemers.ansible-gitlab-runnerを使います。
+
+https://github.com/riemers/ansible-gitlab-runner
+
 GitLabの画面上でRegistration Tokenを取得する必要があるため、
 一旦GitLabのインストールを終えて、その後GitLab Runnerをインストールします。
 
 GitLabにrootでログインし、下記のURLにアクセスしてURLとRegistration Tokenをメモします。
 
 https://gitlab.example.com/admin/runners
-
-
-また、GitLabの自己署名証明書をGitLab Runnerにあらかじめコピーしておきます。
-
-```
-scp root@gitlab.example.com:/etc/gitlab/ssl/gitlab.crt \
-    root@gitlab-runner.example.com:/etc/gitlab-runner/certs/gitlab.example.com.crt
-```
-
-（これに相当する処理もdeploy_gitlab-runner.ymlに書いてあるが、
-うまく動かなかったので現在はコメントアウトしている。）
-
-さらに、このPlaybookではREADME.mdの例と同様のDocker Excecutorの設定をそのまま行っていますが、
-エラーが発生するためIssue #59で報告されている回避策を適用します。
-
-https://github.com/riemers/ansible-gitlab-runner
-
-https://github.com/riemers/ansible-gitlab-runner/issues/59#issuecomment-531559554
 
 その後以下のようにURLとRegistration Tokenを指定してdeploy_gitlab-runner.ymlを実行します。
 
