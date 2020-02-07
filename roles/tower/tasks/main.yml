@@ -53,11 +53,13 @@
 
 - name: Restore data if "tower_backup_file" var is defined
   import_tasks: restore.yml
+  run_once: true
   when: tower_backup_file is defined
 
 
 # Execute only this by the tag: ansible-playbook ... -t tower_restore
 - import_tasks: restore.yml
+  run_once: true
   tags:
     - never
     - tower_restore
@@ -65,6 +67,7 @@
 
 # Execute only this by the tag: ansible-playbook ... -t tower_backup
 - import_tasks: backup.yml
+  run_once: true
   tags:
     - never
     - tower_backup
