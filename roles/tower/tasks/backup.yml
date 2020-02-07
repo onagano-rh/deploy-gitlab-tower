@@ -7,7 +7,8 @@
     cmd: ./setup.sh -b
     chdir: "{{ tower_home }}"
 
-- set_fact:
+- name: Set backup file name
+  set_fact:
     # A symbolic link with this name is created
     backup_file: "{{ tower_home }}/tower-backup-latest.tar.gz"
 
