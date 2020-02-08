@@ -11,11 +11,11 @@
 - name: Copy the backup file
   copy:
     src: "{{ tower_backup_file }}"
-    dest: /opt
+    dest: "{{ ansible_env.HOME }}"
 
 - name: Restore by setup.sh
   command: # noqa 301
     cmd: >-
       ./setup.sh -r
-      -e 'restore_backup_file=/opt/{{ tower_backup_file | basename }}'
+      -e 'restore_backup_file={{ ansible_env.HOME }}/{{ tower_backup_file | basename }}'
     chdir: "{{ tower_home }}"

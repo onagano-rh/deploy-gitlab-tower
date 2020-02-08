@@ -1,7 +1,8 @@
 ---
 tower_home: /opt/tower
 
-tower_installer_url: https://releases.ansible.com/ansible-tower/setup/ansible-tower-setup-latest.tar.gz
+tower_installer_url: https://releases.ansible.com/ansible-tower/setup/ansible-tower-setup-3.6.2-1.tar.gz
+tower_installer_url_sha1sum: sha1:cad8aedcd55a9a8b30e921e7346f41374348ac25
 
 admin_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256

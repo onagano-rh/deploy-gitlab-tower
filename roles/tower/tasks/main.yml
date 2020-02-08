@@ -10,7 +10,8 @@
 - name: Download Tower installer
   get_url:
     url: "{{ tower_installer_url }}"
-    dest: /opt
+    dest: "{{ ansible_env.HOME }}"
+    checksum: "{{ tower_installer_url_sha1sum }}"
   register: tower_archive
 
 - debug:

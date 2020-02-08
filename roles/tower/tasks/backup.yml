@@ -7,10 +7,14 @@
     cmd: ./setup.sh -b
     chdir: "{{ tower_home }}"
 
-- name: Set backup file name
+- name: List the backup files in last modified first way
+  shell: "ls -t {{ tower_home }}/tower-backup-????-??-??-*.tar.gz" # noqa 305
+  changed_when: false
+  register: res_lst
+
+- name: Record the backup file name
   set_fact:
-    # A symbolic link with this name is created
-    backup_file: "{{ tower_home }}/tower-backup-latest.tar.gz"
+    backup_file: "{{ res_lst.stdout_lines[0] }}"
 
 - name: Bring the backup file if "local_dest" var is defined
   fetch:
