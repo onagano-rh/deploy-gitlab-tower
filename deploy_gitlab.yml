@@ -12,6 +12,8 @@
             name: gitlab
           vars:
             gitlab_external_url: "https://{{ inventory_hostname }}/"
+            gitlab_edition: "gitlab-ce"
+            gitlab_version: '12.7.5'
             gitlab_self_signed_cert_subj: "/C=JP/ST=Tokyo/L=Shibuya/O=Consulting/CN={{ inventory_hostname }}"
         - name: Open ports for GitLab
           firewalld:

@@ -1,7 +1,9 @@
 ---
 common_packages:
-  - ansible
   - vim-enhanced
   - tmux
   - tar
+  - zip
   - unzip
+  - gzip
+  - rsync

@@ -1,0 +1,26 @@
+# Doc: https://docs.gitlab.com/omnibus/settings/backups.html
+
+---
+- name: Backup GitLab
+  hosts: gitlab
+  become: true
+  run_once: true
+  tasks:
+    - name: Backup for data and configuration
+      include_tasks: file_fetch_tasks.yml
+      vars:
+        command: "{{ item.cmd }}"
+        directory: "{{ item.dir }}"
+        file_glob: "{{ item.glob }}"
+      loop:
+        # For application data
+        - cmd: gitlab-backup create
+          dir: /var/opt/gitlab/backups
+          # e.g. "1581057576_2020_02_07_12.7.5_gitlab_backup.tar"
+          glob: "*_gitlab_backup.tar"
+
+        # For configuration
+        - cmd: gitlab-ctl backup-etc
+          dir: /etc/gitlab/config_backup
+          # e.g. "gitlab_config_1581154050_2020_02_08.tar"
+          glob: "gitlab_config_*.tar"

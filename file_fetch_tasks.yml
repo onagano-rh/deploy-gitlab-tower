@@ -1,0 +1,35 @@
+---
+- name: Check if variables are defined
+  assert:
+    that:
+      - command | d()
+      - directory | d()
+      - file_glob | d()
+
+- name: Take backup on the remote host
+  command: "{{ command }}" # noqa 301
+  tags:
+    - gitlab_backup
+
+- name: Show the backup path
+  command: ls -al {{ directory }}
+  changed_when: false
+  register: res_ls
+- debug:
+    var: res_ls.stdout_lines
+
+- name: Take the latest backup file name
+  shell: "ls -t {{ directory }}/{{ file_glob }}" # noqa 305
+  changed_when: false
+  register: res_lsr
+
+- name: Record the backup file name
+  set_fact:
+    backup_file: "{{ res_lsr.stdout_lines[0] }}"
+
+- name: Fetch the backup file
+  fetch:
+    src: "{{ backup_file }}"
+    dest: "{{ local_dest }}/{{ inventory_hostname }}_{{ backup_file | basename }}"
+    flat: true
+  when: local_dest is defined

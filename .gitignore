@@ -1,2 +1,3 @@
 hosts
+*.tar
 *.tar.gz
