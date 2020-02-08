@@ -2,7 +2,7 @@
 
 ---
 - name: Deploy GitLab Runner
-  hosts: gitlab-runner
+  hosts: gitlab_runner
   become: true
   roles:
     - role: common
