@@ -1,0 +1,17 @@
+# https://docs.gitlab.com/ee/ci/yaml/README.html
+
+---
+image: quay.io/ansible/molecule:2.20
+before_script:
+  - echo "Before Script"
+  - cat /etc/os-release
+  - pwd
+
+test01:
+  script:
+    - cd /builds/test-user/mypb
+    - ansible-lint deploy_gitlab.yml
+    - ansible-lint backup_gitlab.yml
+    - ansible-lint restore_gitlab.yml
+    - ansible-lint deploy_gitlab-runner.yml
+    - ansible-lint deploy_tower.yml
