@@ -1,7 +1,15 @@
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
 
-- [使い方](#使い方)
+- [How to Use](#how-to-use)
+    - [Inventory](#inventory)
+    - [Ansible Vaultによる秘密情報の暗号化について](#ansible-vaultによる秘密情報の暗号化について)
+    - [各Playbookの実行方法](#各playbookの実行方法)
+        - [GitLabとTowerのインストール (site.yml, deploy_gitlab.yml, deploy_tower.yml)](#gitlabとtowerのインストール-siteyml-deploygitlabyml-deploytoweryml)
+        - [Runnerのインストール (deploy_gitlab-runner.yml)](#runnerのインストール-deploygitlab-runneryml)
+        - [GitLabのバックアップとリストア (backup_gitlab.yml, restore_gitlab.yml)](#gitlabのバックアップとリストア-backupgitlabyml-restoregitlabyml)
+        - [Towerのバックアップとリストア (roles/tower)](#towerのバックアップとリストア-rolestower)
+- [Old Notes](#old-notes)
     - [インベントリの設定](#インベントリの設定)
     - [ansible.cfgの設定](#ansiblecfgの設定)
     - [Ansible Vaultのパスワードファイルの作成と暗号化文字列の更新](#ansible-vaultのパスワードファイルの作成と暗号化文字列の更新)
@@ -14,8 +22,148 @@
 <!-- markdown-toc end -->
 
 
+How to Use
+=============
 
-使い方
+Inventory
+-----------
+
+| Group         | 推奨OS   | 備考 |
+| -----         | ------   | ---- |
+| gitlab        | CentOS 7 | [geerlingguy.gitlab](https://galaxy.ansible.com/geerlingguy/gitlab) を使用。 |
+| gitlab_runner | CentOS 7 | [riemers.gitlab-runner](https://galaxy.ansible.com/riemers/gitlab-runner) を使用。 |
+| tower         | RHEL 8   | [公式インストーラ](https://releases.ansible.com/ansible-tower/setup/) と適切なサブスクリプションを使用。 |
+
+各グループにホストを1台ずつ用意すること。
+GitLab Runnerは複数台でも可だが、他はHA構成に対応したPlaybookにはなっていない。
+
+GitLabに関しては、公式のインストーラがバージョン7系にしか対応していないためCentOS 7にした。
+
+以下、Ansible TowerをTower、GitLab RunnerをRunnerと単に呼ぶことにする。
+
+Ansible Galaxyの各Roleは、Towerでの実行時は roles/requirements.yml の情報を用いて
+自動取得することもできるが、ここではバージョンを固定する意味も含めてリポジトリ内に含めた。
+
+
+Ansible Vaultによる秘密情報の暗号化について
+----------------------------------------------
+
+特にTowerのインストールでは、サブスクリプションのパスワードや
+ライセンスのJSONオブジェクトなどの変数を暗号化して保存している。
+これらは各ユーザが`ansible-vault`コマンドを使って自分のものを生成し、
+roles/tower/defaults/main.yml を書き換える必要がある。
+
+また、そうした変数を使うPlaybookの実行時には`--vault-password-file`
+オプションの指定も必要になる。
+
+```shell
+echo -n '<Your_Password>' > /tmp/mypassword.txt
+echo -n '<Variable_Value>' | ansible-vault encrypt_string \
+  --vault-password-file /tmp/my-password.txt --stdin-name <Variable_Key>
+vi roles/tower/defaults/main.yml
+ansible-playbook --vault-password-file /tmp/my-password.txt your_playbook.yml
+```
+
+
+各Playbookの実行方法
+----------------------
+
+### GitLabとTowerのインストール (site.yml, deploy_gitlab.yml, deploy_tower.yml)
+
+site.yml でGitLabとTowerのインストールを行う。
+これは中で deploy_gitlab.yml と deploy_tower.yml を呼び出しているだけである。
+
+```shell
+ansible-playbook --vault-password-file /tmp/my-password.txt site.yml
+```
+
+| System | 管理者ユーザ | そのパスワード                                                   |
+| ------ | ------------ | -----------                                                      |
+| GitLab | root         | 5iveL!fe（初回アクセス時に変更する）                             |
+| Tower  | admin        | （roles/tower/defaults/main.yml の "admin_password" 変数で設定） |
+
+TowerがGitLabのプロジェクトをクローンできるように、
+自己署名証明書の検証を行わない下記の設定を "SETTINGS / JOBS / EXTRA ENVIRONMENT VARIABLES"
+に行う。
+
+```
+{
+ "GIT_SSL_NO_VERIFY": "True"
+}
+```
+
+また、roles/requirements.yml を用いたRoleやCollectionの自動ダウンロードを
+無効にする設定も同じ画面でできる。
+
+
+
+### Runnerのインストール (deploy_gitlab-runner.yml)
+
+Runnerについては gitlab-runner.yml を後で別に実行してインストールする。
+事前にGitLabの "Admin Area > Runners" から登録用のトークンを取得しておき、
+Extra Varsで指定する。
+
+```shell
+ansible-playbook deploy_gitlab-runner.yml \
+  -e 'gitlab_runner_coordinator_url=https://gitlab.example.com/' \
+  -e 'gitlab_runner_registration_token=<Registration_Token>'
+```
+
+
+ Install GitLab Runner
+Specify the following URL during the Runner setup: https://gitlab.example.com/
+Use the following registration token during setup: -NLCEjjgCK8_JPxQ2oRx
+Start the Runner! 
+
+
+### GitLabのバックアップとリストア (backup_gitlab.yml, restore_gitlab.yml)
+
+変数"local_dest"を指定した場合は、コントロールノードにバックアップファイルをコピーする。
+この変数が無い場合は、リモートホスト側にバックアップファイルを残すだけになる。
+
+```shell
+ansible-playbook backup_gitlab.yml -e local_dest=.
+```
+
+GitLabではデータとセキュリティ関連の設定とでバックアップ対象を2つに分けており、
+ファイルも2つできる。
+
+```
+$ ls
+gitlab.example.com_1581179648_2020_02_08_12.7.5_gitlab_backup.tar
+gitlab.example.com_gitlab_config_1581179650_2020_02_08.tar
+```
+
+これらを用いてリストアを行える。
+
+```
+ansible-playbook restore_gitlab.yml \
+  -e gitlab_backup_data=./gitlab.example.com_1581179648_2020_02_08_12.7.5_gitlab_backup.tar \
+  -e gitlab_backup_config=./gitlab.example.com_gitlab_config_1581179650_2020_02_08.tar
+```
+
+
+### Towerのバックアップとリストア (roles/tower)
+
+TowerではRoleを自作してることもあり、バックアップとリストアのタスクは
+Role内に記述しており、実行時にタグを指定することで使い分ける。
+
+```
+ansible-playbook deploy_tower.yml -t tower_backup -e local_dest=.
+```
+
+Towerではバックアップファイルは1つであり、それを変数"tower_backup_file"に
+指定してタグ"tower_restore"を指定してリストアを行う。
+
+```
+ansible-playbook deploy_tower.yml -t tower_restore \
+  -e tower_backup_file=tower.example.com_tower-backup-2020-02-08-11:40:48.tar.gz
+```
+
+
+
+
+Old Notes
 =========
 
 
