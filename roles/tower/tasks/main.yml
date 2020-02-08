@@ -40,6 +40,14 @@
   tags:
     - tower_setup
 
+- name: Wait for Ansible Tower https port
+  wait_for:
+    host: "{{ inventory_hostname }}"
+    port: 443
+    delay: 10
+    timeout: 180
+    state: started
+
 - name: Import a license
   uri:
     url: "https://{{ ansible_host }}/api/v2/config/"
