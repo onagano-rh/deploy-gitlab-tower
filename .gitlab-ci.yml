@@ -9,7 +9,6 @@ before_script:
 
 test01:
   script:
-    - cd /builds/test-user/mypb
     - ansible-lint deploy_gitlab.yml
     - ansible-lint backup_gitlab.yml
     - ansible-lint restore_gitlab.yml
