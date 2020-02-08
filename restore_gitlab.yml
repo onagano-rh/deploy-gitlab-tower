@@ -1,0 +1,74 @@
+# Doc: https://docs.gitlab.com/ee/raketasks/backup_restore.html#restore-for-omnibus-gitlab-installations
+
+---
+- name: Restore GitLab
+  hosts: gitlab
+  become: true
+  run_once: true
+  tasks:
+
+    - name: Check if variables are valid
+      assert:
+        that:
+          - gitlab_backup_data | d()
+          - gitlab_backup_data is file
+          - gitlab_backup_config | d()
+          - gitlab_backup_config is file
+
+    - name: Stop some services
+      command: gitlab-ctl stop {{ item }} # noqa 301
+      loop:
+        - unicorn
+        # "puma" is documented but not found actually
+        #- puma
+        - sidekiq
+
+    - name: Wait for those services stopped
+      command: gitlab-ctl status # noqa 301
+      failed_when: false # Ignore return code
+      register: cmd_res
+      retries: 10
+      delay: 3
+      until: >-
+        cmd_res.stdout_lines |
+        select('regex','^down: (unicorn|puma|sidekiq)') |
+        list |
+        count >= 2
+
+    - name: Make dir for old backup files
+      file:
+        path: "{{ ansible_env.HOME }}/old_backup_contents"
+        state: directory
+
+    - name: Move old backup files # noqa 301
+      shell: mv -f /var/opt/gitlab/backups/* {{ ansible_env.HOME }}/old_backup_contents
+      failed_when: false # Ignore whenk it's empty
+
+    - name: Copy backup data file
+      copy:
+        src: "{{ gitlab_backup_data }}"
+        # Must be here to run gitlab-backup command
+        dest: /var/opt/gitlab/backups/
+        owner: git
+        group: git
+
+    - name: Restore for the backup # noqa 301
+      # Need to ansewr "yes" two times. Or use "expect" module.
+      # "BACKUP=..." arg is required if multiple files exist in the dir.
+      shell: |
+        set -o pipefail
+        yes yes | gitlab-backup restore
+
+    - name: Unarchive the config backup file
+      unarchive:
+        src: "{{ gitlab_backup_config }}"
+        dest: /
+
+    - name: Reconfigure GitLab # noqa 301
+      command: gitlab-ctl reconfigure
+
+    - name: Restart GitLab # noqa 301
+      command: gitlab-ctl restart
+
+    - name: Check GitLab # noqa 301
+      command: gitlab-rake gitlab:check SANITIZE=true
