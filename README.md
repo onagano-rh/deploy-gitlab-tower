@@ -9,6 +9,10 @@
         - [Runnerのインストール (deploy_gitlab-runner.yml)](#runnerのインストール-deploygitlab-runneryml)
         - [GitLabのバックアップとリストア (backup_gitlab.yml, restore_gitlab.yml)](#gitlabのバックアップとリストア-backupgitlabyml-restoregitlabyml)
         - [Towerのバックアップとリストア (roles/tower)](#towerのバックアップとリストア-rolestower)
+    - [WIP: Docker Executor in Runner](#wip-docker-executor-in-runner)
+        - [-](#-)
+        - [tower_cli.cfg](#towerclicfg)
+        - [.gitlab-ci.cfg](#gitlab-cicfg)
 - [Old Notes](#old-notes)
     - [インベントリの設定](#インベントリの設定)
     - [ansible.cfgの設定](#ansiblecfgの設定)
@@ -177,7 +181,8 @@ RHEL上で動かすUBIであれば、UBIにはない通常のRHELのパッケー
 
 Runnerで稼働しているDockerにあらかじめイメージを作成しておく。
 
-Dockerfile:
+#### Dockerfile
+
 ```
 FROM registry.access.redhat.com/ubi8/ubi:latest
 
@@ -196,7 +201,8 @@ RUN pip3 install --user ansible-tower-cli
 ADD tower_cli.cfg .tower_cli.cfg
 ```
 
-tower_cli.cfg:
+#### tower_cli.cfg
+
 ```
 [general]
 host = https://tower.example.com
@@ -210,7 +216,8 @@ tower-cli config verify_ssl false
 tower-cli login <Username> --password '<Password>'
 ```
 
-.gitlab-ci.cfg
+#### .gitlab-ci.cfg
+
 ```
 image: localhost/deploy-gitlab-tower/tower-cli:latest
 
