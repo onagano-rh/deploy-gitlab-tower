@@ -168,6 +168,65 @@ ansible-playbook deploy_tower.yml -t tower_restore \
 内に残り、自動では削除されないので注意する。
 
 
+WIP: Docker Executor in Runner
+-------------------------------------
+
+RunnerではDocker Executorを設定しており、任意のイメージを実行できる。
+特に、Red Hatの証明書を設定済みなのでCentOS上であってもUBIを利用できる。
+RHEL上で動かすUBIであれば、UBIにはない通常のRHELのパッケージも利用できる。
+
+Runnerで稼働しているDockerにあらかじめイメージを作成しておく。
+
+Dockerfile:
+```
+FROM registry.access.redhat.com/ubi8/ubi:latest
+
+# Can be run in one line and "dnf clean all" at the end.
+RUN dnf -y update
+RUN dnf -y module install python36
+RUN dnf -y install procps-ng iproute iputils zip unzip gzip tar rsync less vim-enhanced
+
+RUN useradd tower-user
+USER tower-user
+WORKDIR /home/tower-user
+ENV PATH /home/tower-user/.local/bin:${PATH}
+
+RUN pip3 install --user ansible-tower-cli
+
+ADD tower_cli.cfg .tower_cli.cfg
+```
+
+tower_cli.cfg:
+```
+[general]
+host = https://tower.example.com
+verify_ssl = false
+oauth_token = <Token_Generated_by_tower-cli_login>
+```
+アクセス用のトークンを含んだ ~/.tower_cli.cfg は以下の手順で作成する。
+```
+tower-cli config host https://tower.example.com
+tower-cli config verify_ssl false
+tower-cli login <Username> --password '<Password>'
+```
+
+.gitlab-ci.cfg
+```
+image: localhost/deploy-gitlab-tower/tower-cli:latest
+
+before_script:
+  - tower-cli version
+  
+job-template_7:
+  script:
+    - tower-cli job launch --job-template 7
+```
+Job Template IDは以下のコマンドで検索できる。
+
+    tower-cli job_template list
+
+
+
 
 Old Notes
 =========

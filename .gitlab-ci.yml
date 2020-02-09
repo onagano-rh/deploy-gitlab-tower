@@ -1,16 +1,11 @@
 # https://docs.gitlab.com/ee/ci/yaml/README.html
 
 ---
-image: quay.io/ansible/molecule:2.20
-before_script:
-  - echo "Before Script"
-  - cat /etc/os-release
-  - pwd
+image: localhost/deploy-gitlab-tower/tower-cli:latest
 
-test01:
+before_script:
+  - tower-cli version
+  
+job-template_7:
   script:
-    - ansible-lint deploy_gitlab.yml
-    - ansible-lint backup_gitlab.yml
-    - ansible-lint restore_gitlab.yml
-    - ansible-lint deploy_gitlab-runner.yml
-    - ansible-lint deploy_tower.yml
+    - tower-cli job launch --job-template 7
