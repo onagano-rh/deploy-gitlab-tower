@@ -142,6 +142,10 @@ ansible-playbook restore_gitlab.yml \
   -e gitlab_backup_config=./gitlab.example.com_gitlab_config_1581179650_2020_02_08.tar
 ```
 
+データのバックアップファイルはリモートホストのAnibleが使用している
+ユーザのホームディレクトリ直下の"old_backup_contents"内に残り、
+自動では削除されないので注意する。
+
 
 ### Towerのバックアップとリストア (roles/tower)
 
@@ -160,6 +164,8 @@ ansible-playbook deploy_tower.yml -t tower_restore \
   -e tower_backup_file=tower.example.com_tower-backup-2020-02-08-11:40:48.tar.gz
 ```
 
+バックアップファイルはTowerのインストールディレクトリである"/opt/tower"
+内に残り、自動では削除されないので注意する。
 
 
 
