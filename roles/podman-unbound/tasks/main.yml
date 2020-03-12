@@ -23,6 +23,11 @@
     state: build
   register: podman_build
 
+- name: Copy sudoer file for awx, to run podman as root
+  template:
+    src: sudo-awx.j2
+    dest: "/etc/sudoers.d/sudo-awx"
+
 - name: Create a user service directory
   file:
     path: "{{ ansible_env.HOME }}/.config/systemd/user"
