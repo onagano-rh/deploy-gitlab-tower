@@ -1,0 +1,56 @@
+---
+- name: Install container tools
+  # Check by 'dnf module list'
+  dnf:
+    name: '@container-tools:rhel8/common'
+    state: present
+
+- name: Create a build directory
+  file:
+    path: "{{ ansible_env.HOME }}/podman-unbound"
+    state: directory
+
+- name: Copy Dockerfile
+  template:
+    src: Dockerfile.j2
+    dest: "{{ ansible_env.HOME }}/podman-unbound/Dockerfile"
+
+- name: Build by Podman
+  podman_image:
+    name: "{{ unbound_image_name }}"
+    tag: "{{ unbound_image_tag }}"
+    path: "{{ ansible_env.HOME }}/podman-unbound"
+    state: build
+  register: podman_build
+
+- name: Create a user service directory
+  file:
+    path: "{{ ansible_env.HOME }}/.config/systemd/user"
+    state: directory
+
+- name: Copy service file
+  template:
+    src: my-unbound.service.j2
+    dest: "{{ ansible_env.HOME }}/.config/systemd/user/my-unbound.service"
+
+#- name: Enable the service for auto-start
+#  systemd:
+#    name: my-unbound.service
+#    state: started
+#    enabled: true
+#    scope: user
+
+- name: Reload user systemd configuration
+  command: systemctl --user daemon-reload
+  failed_when: false
+  changed_when: false
+
+- name: Enable the user service
+  command: systemctl --user enable my-unbound.service
+  failed_when: false
+  changed_when: false
+
+- name: Start the user service
+  command: systemctl --user start my-unbound.service
+  failed_when: false
+  changed_when: false

@@ -9,3 +9,6 @@
     - role: tower
       tags:
         - tower
+    - role: podman-unbound
+      tags:
+        - podman-unbound

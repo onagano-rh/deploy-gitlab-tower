@@ -1,0 +1,3 @@
+---
+unbound_image_name: localhost/my-unbound
+unbound_image_tag: ci

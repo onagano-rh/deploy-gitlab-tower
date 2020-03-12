@@ -1,0 +1,17 @@
+# https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html-single/building_running_and_managing_containers/index#starting_containers_with_systemd
+
+[Unit]
+Description=Unbound container by root user
+
+[Service]
+Restart=on-failure
+ExecStartPre=/usr/bin/rm -f /%t/%n-pid /%t/%n-cid
+ExecStart=/usr/bin/podman run --name my-unbound --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid -d {{ unbound_image_name }}:{{ unbound_image_tag }}
+ExecStop=/usr/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
+KillMode=none
+Type=forking
+PIDFile=/%t/%n-pid
+
+[Install]
+# "default", not "multi-user"
+WantedBy=default.target
